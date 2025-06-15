@@ -1,16 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
-// Función para leer la instrucción del JSON
-function getSystemPrompt() {
-  const filePath = path.join(__dirname, '..', 'instructions', 'adri_system_prompt.json');
+// Función para leer la instrucción del JSON según perfil
+function getSystemPrompt(perfil = "general") {
+  const filePath = path.join(__dirname, '..', 'instructions', 'system_prompts.json');
   const data = fs.readFileSync(filePath, 'utf8');
   const json = JSON.parse(data);
-  return json.system_prompt;
+
+  // Si el perfil existe, lo usa. Si no, usa el general
+  return (json.system_prompts && json.system_prompts[perfil]) 
+    ? json.system_prompts[perfil] 
+    : json.system_prompts["general"];
 }
 
-async function sendMessageToOpenAI(mensajeUsuario) {
-  const systemPrompt = getSystemPrompt();
+// mensajeUsuario: texto del usuario
+// perfilPrompt: string, ej "adriana", "general", "traumatologia"
+async function sendMessageToOpenAI(mensajeUsuario, perfilPrompt = "general") {
+  const systemPrompt = getSystemPrompt(perfilPrompt);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
